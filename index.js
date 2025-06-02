@@ -28,6 +28,7 @@ async function run() {
     const db = client.db("task-manager");
     const tasksCollection = db.collection("tasks");
     const booksCollection = db.collection("books");
+    const blogsCollection = db.collection("blogs");
 
     app.post("/books", async (req, res) => {
       const books = req.body;
@@ -37,6 +38,17 @@ async function run() {
 
     app.get("/books", async (req, res) => {
       const result = await booksCollection.find().toArray();
+      res.send(result);
+    });
+    
+    app.post("/blogs", async (req, res) => {
+      const blogs = req.body;
+      const result = await blogsCollection.insertOne(blogs);
+      res.send(result);
+    });
+
+    app.get("/blogs", async (req, res) => {
+      const result = await blogsCollection.find().toArray();
       res.send(result);
     });
 
