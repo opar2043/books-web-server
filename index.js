@@ -5,7 +5,7 @@ const PORT = process.env.PORT || 5000;
 
 const app = express();
 app.use(express.json()); // Parse JSON requests
-app.use(cors()); // Enable CORS
+app.use(cors());
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri =
@@ -26,9 +26,9 @@ async function run() {
     // await client.connect();
 
     const db = client.db("task-manager");
-    const tasksCollection = db.collection("tasks");
     const booksCollection = db.collection("books");
     const blogsCollection = db.collection("blogs");
+    const usersCollection = db.collection("users");
 
     app.post("/books", async (req, res) => {
       const books = req.body;
@@ -49,6 +49,24 @@ async function run() {
 
     app.get("/blogs", async (req, res) => {
       const result = await blogsCollection.find().toArray();
+      res.send(result);
+    });
+        
+    app.delete("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await blogsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.post("/users", async (req, res) => {
+      const users = req.body;
+      const result = await usersCollection.insertOne(users);
+      res.send(result);
+    });
+
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
       res.send(result);
     });
 
@@ -76,46 +94,10 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/commons", async (req, res) => {
-      const category = req.query.category;
-      let query = {};
-      if (category) {
-        query.category = category;
-      }
-      const result = await commonCollection.find(query).toArray();
-      res.send(result);
-    });
 
-    app.delete("/tasks/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await tasksCollection.deleteOne(query);
-
-      res.send(result);
-    });
-
-    app.patch("/tasks/:id", async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const updateTask = req.body;
-      const task = {
-        $set: {
-          title: updateTask.title,
-          category: updateTask.category,
-          deadline: updateTask.deadline,
-          description: updateTask.description,
-        },
-      };
-
-      const result = await tasksCollection.updateOne(filter, task);
-      res.send(result);
-    });
-
-    // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
